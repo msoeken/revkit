@@ -1,0 +1,59 @@
+from setuptools import setup, Extension
+from setuptools.command.build_ext import build_ext
+from setuptools.command.test import test as TestCommand
+import glob
+import os
+import sys
+import pybind11
+
+base_path = os.path.dirname(__file__)
+
+ext_modules = [
+  Extension(
+    'revkit',
+    glob.glob(os.path.join(base_path, 'ext', '*.cpp')),
+    include_dirs=[
+      pybind11.get_include(),
+      os.path.join(base_path, 'lib', 'fmt'),
+      os.path.join(base_path, 'lib', 'kitty'),
+      os.path.join(base_path, 'lib', 'tweedledum')
+    ],
+    define_macros=[
+      ('FMT_HEADER_ONLY', '1')
+    ],
+    language='c++'
+  )
+]
+
+class BuildExt(build_ext):
+  def build_extensions(self):
+    ct = self.compiler.compiler_type
+    opts = []
+    if ct == 'unix':
+      opts.append('-std=c++17')
+      opts.append('-Wno-unknown-pragmas')
+    else:
+      opts.append('/std:c++17')
+    for ext in self.extensions:
+      ext.extra_compile_args = opts
+    build_ext.build_extensions(self)
+
+class PyTest(TestCommand):
+  def run_tests(self):
+    import pytest
+    errno = pytest.main()
+    sys.exit(errno)
+
+setup(
+  name='revkit',
+  version='3.1.0',
+  author='Mathias Soeken',
+  author_email='mathias.soeken@epfl.ch',
+  ext_modules=ext_modules,
+  cmdclass={
+    'build_ext': BuildExt,
+    'test': PyTest
+  },
+  zip_safe=False,
+  tests_require=['pytest']
+)
