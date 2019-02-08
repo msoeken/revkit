@@ -3,6 +3,7 @@ venv/bin/activate: requirements.txt docs/requirements.txt
 	test -d venv || virtualenv venv
 	venv/bin/pip install -r requirements.txt
 	venv/bin/pip install -r docs/requirements.txt
+	venv/bin/pip install qiskit
 	touch venv/bin/activate
 
 devbuild: venv
