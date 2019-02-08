@@ -5,6 +5,7 @@
 
 #include <tweedledum/gates/mcst_gate.hpp>
 #include <tweedledum/io/quil.hpp>
+#include <tweedledum/io/write_unicode.hpp>
 #include <tweedledum/networks/netlist.hpp>
 
 #include "types.hpp"
@@ -75,6 +76,9 @@ void netlist( py::module m )
     tweedledum::write_quil( ref, s );
     return s.str();
   }, "Write circuit to QUIL code" );
+  _netlist.def( "to_unicode", []( netlist_t const& ref ) { 
+    return tweedledum::to_unicode_str( ref );
+  }, "Write circuit to Unicode representation" );
 }
 
 } // namespace revkit
