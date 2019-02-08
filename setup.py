@@ -10,7 +10,7 @@ base_path = os.path.dirname(__file__)
 
 ext_modules = [
   Extension(
-    'revkit',
+    '_revkit',
     glob.glob(os.path.join(base_path, 'ext', '*.cpp')),
     include_dirs=[
       pybind11.get_include(),
@@ -54,6 +54,7 @@ setup(
     'build_ext': BuildExt,
     'test': PyTest
   },
+  packages=['revkit'],
   zip_safe=False,
   tests_require=['pytest']
 )

@@ -18,7 +18,7 @@ void synthesis( py::module m );
 
 }
 
-PYBIND11_MODULE( revkit, m )
+PYBIND11_MODULE( _revkit, m )
 {
   revkit::qubit( m );
   revkit::gate( m );
