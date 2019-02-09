@@ -9,3 +9,6 @@ Data structures
 
 .. autoclass:: revkit.qubit
    :members:
+
+.. autoclass:: revkit.truth_table
+   :members:
