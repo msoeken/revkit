@@ -43,7 +43,7 @@ void synthesis( py::module m )
   }, R"doc(
     GraySynth synthesis algorithm for parity terms
 
-    :param List[(str, float)] parity_terms: A list of tuples of parity terms.
+    :param List[(str,float)] args: A list of tuples of parity terms.
         The first entry of the term is a bitstring where the first bit
         corresponds to the first qubit and is 1 if it is contained in the parity
         term. The second parameter is the angle that should be applied for this

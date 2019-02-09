@@ -17,11 +17,11 @@ namespace revkit
 
 void qubit( py::module m )
 {
-  py::class_<tweedledum::qubit_id> _qubit( m, "qubit" );
-  _qubit.def_property_readonly( "index", &tweedledum::qubit_id::index );
-  _qubit.def_property_readonly( "is_complemented", &tweedledum::qubit_id::is_complemented );
-  _qubit.def( "__int__", &tweedledum::qubit_id::index );
-  _qubit.def( "__bool__", []( tweedledum::qubit_id const& ref ) { return !ref.is_complemented(); } );
+  py::class_<tweedledum::qubit_id> _qubit( m, "qubit", "Qubit data structure" );
+  _qubit.def_property_readonly( "index", &tweedledum::qubit_id::index, "Index of qubit" );
+  _qubit.def_property_readonly( "is_complemented", &tweedledum::qubit_id::is_complemented, "True, if qubit is complemented (negative polarity, anti control)" );
+  _qubit.def( "__int__", &tweedledum::qubit_id::index, "Cast to qubit's index" );
+  _qubit.def( "__bool__", []( tweedledum::qubit_id const& ref ) { return !ref.is_complemented(); }, "Cast to qubit's polarity" );
 }
 
 void gate( py::module m )
