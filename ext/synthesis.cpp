@@ -1,10 +1,12 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <vector>
 
 #include <tweedledum/algorithms/synthesis/gray_synth.hpp>
+#include <tweedledum/algorithms/synthesis/stg.hpp>
 #include <tweedledum/algorithms/synthesis/tbs.hpp>
 
 #include "types.hpp"
@@ -59,6 +61,44 @@ void synthesis( py::module m )
 
     .. seealso:: `tweedledum documentation for gray_synth <https://tweedledum.readthedocs.io/en/latest/algorithms/synthesis/gray_synth.html>`_
 )doc" );
+
+  enum class oracle_synth_type {
+    spectrum
+  };
+
+  py::enum_<oracle_synth_type>( m, "oracle_synth_type", "Oracle synthesis kind enumeration" )
+    .value( "spectrum", oracle_synth_type::spectrum )
+    .export_values();
+
+  m.def( "oracle_synth", []( truth_table_t const& function, oracle_synth_type kind ) {
+    netlist_t circ;
+    for ( auto i = 0u; i < function.num_vars() + 1u; ++i )
+    {
+      circ.add_qubit();
+    }
+    std::vector<tweedledum::qubit_id> qubits( function.num_vars() + 1u );
+    std::iota( qubits.begin(), qubits.end(), 0u );
+
+    switch ( kind ) {
+      default:
+      case oracle_synth_type::spectrum:
+        tweedledum::stg_from_spectrum()( circ, qubits, function );
+        break;
+    }
+
+    return circ;
+  },
+         R"doc(
+    Oracle synthesis
+
+    Creates a quantum circuit that flips the target qubit based on a Boolean
+    function.  The target qubit is the last qubit in the circuit.
+
+    :param truth_table function: Oracle function
+    :param kind: Synthesis type
+    :rtype: netlist
+)doc",
+         "function"_a, "kind"_a = oracle_synth_type::spectrum );
 
   m.def( "tbs", []( std::vector<uint32_t> const& perm ) { return tweedledum::tbs<netlist_t>( perm ); }, R"doc(
     Transformation based synthesis
