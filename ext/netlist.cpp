@@ -50,6 +50,13 @@ void gate( py::module m )
 
     :rtype: gate.gate_type
 )doc" );
+  _gate.def_property_readonly( "angle", []( gate_t const& ref ) { 
+    return ref.rotation_angle().numeric_value();
+  }, R"doc(
+    Rotation angle, if gate is rotation gate
+
+    :rtype: float
+)doc" );
 
   py::enum_<tweedledum::gate_set>( _gate, "gate_type", "Gate kind enumeration" )
 #define GATE(X, Y, Z, W) .value( #X, tweedledum::gate_set:: X )
