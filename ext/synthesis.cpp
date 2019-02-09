@@ -22,6 +22,8 @@ void synthesis( py::module m )
 
     :param List[int] perm: A permutation of the values :math:`\{0, \dots, 2^n - 1\}`.
     :rtype: netlist
+
+    .. seealso:: `tweedledum documentation for tbs <https://tweedledum.readthedocs.io/en/latest/algorithms/synthesis/tbs.html>`_
 )doc", "perm"_a );
 }
 

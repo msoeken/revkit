@@ -11,6 +11,7 @@ Welcome to RevKit's documentation!
    :caption: Contents:
 
    types
+   decomposition
    synthesis
 
 Indices and tables
