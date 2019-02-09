@@ -27,19 +27,23 @@ def _to_qiskit(self):
 
       # only at most 2 controls and no negative controls
       if len(ctls) > 2: assert False
-      if len([q for q in ctls if not bool(q)]) > 0: assert False
 
+      negs = [qr[int(q)] for q in ctls if not bool(q)]
       ctls = [qr[int(q)] for q in ctls]
       tgts = [qr[q] for q in g.targets]
 
       for t in tgts[1:]:
         circuit.cx(tgts[0], t)
+      for n in negs:
+        circuit.x(n)
       if len(ctls) == 0:
         circuit.x(tgts[0])
       elif len(ctls) == 1:
         circuit.cx(ctls[0], tgts[0])
       else:
         circuit.ccx(ctls[0], ctls[1], tgts[0])
+      for n in negs:
+        circuit.x(n)
       for t in tgts[1:]:
         circuit.cx(tgts[0], t)
     else:
