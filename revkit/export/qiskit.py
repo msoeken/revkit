@@ -8,12 +8,22 @@ def _to_qiskit(self):
   circuit = QuantumCircuit(qr, cr)
 
   for g in self.gates:
-    if g.kind == gate.gate_type.mcx:
+    if g.kind == gate.gate_type.rotation_z:
+      for t in g.targets:
+        circuit.rz(g.angle, qr[t])
+
+    elif g.kind == gate.gate_type.cx:
+      ctrl = g.controls[0]
+      if not bool(ctrl): assert False
+      for t in g.targets:
+        circuit.cx(qr[int(ctrl)], qr[t])
+
+    elif g.kind == gate.gate_type.mcx:
       ctls = g.controls
 
       # only at most 2 controls and no negative controls
       if len(ctls) > 2: assert False
-      if len([q for q in ctls if bool(q) == False]) > 0: assert False
+      if len([q for q in ctls if not bool(q)]) > 0: assert False
 
       ctls = [qr[int(q)] for q in ctls]
       tgts = [qr[q] for q in g.targets]
@@ -29,7 +39,7 @@ def _to_qiskit(self):
       for t in tgts[1:]:
         circuit.cx(tgts[0], t)
     else:
-      assert False
+      raise BaseException(f"Unsupported gate type {g.kind}")
 
   return circuit
 
