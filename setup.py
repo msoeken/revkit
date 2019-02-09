@@ -14,7 +14,9 @@ ext_modules = [
     glob.glob(os.path.join(base_path, 'ext', '*.cpp')),
     include_dirs=[
       pybind11.get_include(),
+      os.path.join(base_path, 'lib', 'easy'),
       os.path.join(base_path, 'lib', 'fmt'),
+      os.path.join(base_path, 'lib', 'glucose'),
       os.path.join(base_path, 'lib', 'kitty'),
       os.path.join(base_path, 'lib', 'tweedledum')
     ],
