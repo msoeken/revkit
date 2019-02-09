@@ -63,10 +63,14 @@ void synthesis( py::module m )
 )doc" );
 
   enum class oracle_synth_type {
+    pkrm,
+    pprm,
     spectrum
   };
 
   py::enum_<oracle_synth_type>( m, "oracle_synth_type", "Oracle synthesis kind enumeration" )
+    .value( "pkrm", oracle_synth_type::pkrm )
+    .value( "pprm", oracle_synth_type::pprm )
     .value( "spectrum", oracle_synth_type::spectrum )
     .export_values();
 
@@ -83,6 +87,12 @@ void synthesis( py::module m )
       default:
       case oracle_synth_type::spectrum:
         tweedledum::stg_from_spectrum()( circ, qubits, function );
+        break;
+      case oracle_synth_type::pkrm:
+        tweedledum::stg_from_pkrm()( circ, qubits, function );
+        break;
+      case oracle_synth_type::pprm:
+        tweedledum::stg_from_pprm()( circ, qubits, function );
         break;
     }
 
