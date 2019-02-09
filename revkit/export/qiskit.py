@@ -8,7 +8,11 @@ def _to_qiskit(self):
   circuit = QuantumCircuit(qr, cr)
 
   for g in self.gates:
-    if g.kind == gate.gate_type.rotation_z:
+    if g.kind == gate.gate_type.hadamard:
+      for t in g.targets:
+        circuit.h(qr[t])
+
+    elif g.kind == gate.gate_type.rotation_z:
       for t in g.targets:
         circuit.rz(g.angle, qr[t])
 
