@@ -10,6 +10,7 @@ Welcome to RevKit's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   changelog
    types
    decomposition
    synthesis
