@@ -17,3 +17,6 @@ Version 3.1 (not yet released)
     - Gray synthesis (:func:`revkit.gray_synth`)
     - Oracle synthesis (:func:`revkit.oracle_synth`)
     - Transformation-based synthesis (:func:`revkit.tbs`)
+
+* Interoperability:
+    - Create Qiskit quantum circuit from RevKit quantum circuit (:func:`revkit.netlist.to_qiskit`)

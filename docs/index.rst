@@ -14,6 +14,7 @@ Welcome to RevKit's documentation!
    types
    decomposition
    synthesis
+   export_qiskit
 
 Indices and tables
 ==================

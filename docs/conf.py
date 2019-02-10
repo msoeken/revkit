@@ -158,4 +158,12 @@ texinfo_documents = [
 ]
 
 
+# -- Options for autodoc -----------------------------------------------------
+
+autodoc_mock_imports = [
+    'revkit.export.qiskit'
+]
+import revkit.export.qiskit
+
+
 # -- Extension configuration -------------------------------------------------

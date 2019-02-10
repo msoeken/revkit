@@ -3,6 +3,7 @@ Data structures
 
 .. autoclass:: revkit.netlist
    :members:
+   :exclude-members: to_qiskit
 
 .. autoclass:: revkit.gate
    :members:
