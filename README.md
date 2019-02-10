@@ -4,10 +4,10 @@ RevKit 3.1 is a Python quantum compilation library.  RevKit is based on the C++
 libraries [tweedledum](https://github.com/boschmitt/tweedledum) and
 [caterpillar](https://github.com/gmeuli/caterpillar) (as well as other C++
 libraries from the
-[EPFL logic synthesislibraries](https://github.com/lsils/lstools-showcase)), and
-exposes their functionality by means of simple Python APIs.  It also contains
-the module `revkit.export` with several functions for interoperability with
-other quantum programming languages and frameworks.
+[EPFL logic synthesis libraries](https://github.com/lsils/lstools-showcase)),
+and exposes their functionality by means of simple Python APIs.  It also
+contains the module `revkit.export` with several functions for interoperability
+with other quantum programming languages and frameworks.
 
 ## Example
 
