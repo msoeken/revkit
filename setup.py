@@ -4,16 +4,19 @@ from setuptools.command.test import test as TestCommand
 import glob
 import os
 import sys
-import pybind11
 
 base_path = os.path.dirname(__file__)
+
+def pybind_include():
+  import pybind11
+  return pybind11.get_include()
 
 ext_modules = [
   Extension(
     '_revkit',
     glob.glob(os.path.join(base_path, 'ext', '*.cpp')),
     include_dirs=[
-      pybind11.get_include(),
+      pybind_include(),
       os.path.join(base_path, 'lib', 'easy'),
       os.path.join(base_path, 'lib', 'fmt'),
       os.path.join(base_path, 'lib', 'glucose'),
