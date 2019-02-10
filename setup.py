@@ -56,7 +56,8 @@ setup(
     'build_ext': BuildExt,
     'test': PyTest
   },
-  packages=['revkit'],
+  packages=['revkit', 'revkit.export'],
   zip_safe=False,
+  install_requires=['pybind11>=2.2'],
   tests_require=['pytest']
 )
