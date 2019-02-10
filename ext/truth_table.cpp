@@ -61,6 +61,8 @@ void truth_table( py::module m )
     .. seealso:: `kitty documentation for create_from_expression <https://libkitty.readthedocs.io/en/latest/reference.html#_CPPv3N5kitty22create_from_expressionER2TTRKNSt6stringE>`_
 )doc", "expression"_a );
 
+  _truth_table.def_property_readonly( "num_vars", &truth_table_t::num_vars, "Number of variables" );
+
 }
 
 }
