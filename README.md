@@ -32,7 +32,7 @@ pip install revkit
 
 ## Previous versions
 
-RevKit has a long 10-year history. The rapidly changing requirements for
+RevKit has a 10-year long history. The rapidly changing requirements for
 quantum computing also influenced RevKit, such that it was redesigned several
 times. Previous versions of RevKit can be found online, but are no longer
 maintained. Since version 3.1, RevKit does no longer exist as a standalone
