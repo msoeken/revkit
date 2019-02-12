@@ -9,4 +9,6 @@ Synthesis algorithms
    :members:
    :undoc-members:
 
+.. autofunction:: revkit.dbs
+
 .. autofunction:: revkit.tbs

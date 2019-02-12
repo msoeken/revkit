@@ -14,6 +14,7 @@ Version 3.1 (not yet released)
     - Direct Toffoli decomposition (:func:`revkit.dt_decomposition`)
 
 * Synthesis algorithms:
+    - Decomposition-based synthesis (:func:`revkit.dbs`)
     - Gray synthesis (:func:`revkit.gray_synth`)
     - Oracle synthesis (:func:`revkit.oracle_synth`)
     - Transformation-based synthesis (:func:`revkit.tbs`)
