@@ -5,28 +5,19 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
-#include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <numeric>
 #include <sstream>
 #include <stack>
 #include <unordered_map>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
 namespace tweedledum {
 
-#pragma region device data structure(to be moved)
-struct device_t {
-	std::vector<std::pair<uint8_t, uint8_t>> edges;
-	uint8_t num_vertices;
-};
-#pragma endregion
-
-#pragma region ZDD package
+// TODO: refactor, document
 class zdd_base {
 private:
 	struct node_t {
@@ -493,11 +484,23 @@ public:
 		}
 	};
 
+	template<class Fn>
+	void foreach_set(node f, Fn&& fn)
+	{
+		std::vector<uint32_t> set;
+		foreach_set_rec(f, set, fn);
+	}
+
 	template<class Formatter = identity_format>
 	void print_sets(node f, Formatter&& fmt = Formatter())
 	{
-		std::vector<uint32_t> set;
-		print_sets_rec(f, set, fmt);
+		foreach_set(f, [&](auto const& set) {
+			for (auto v : set) {
+				std::cout << fmt(v) << " ";
+			}
+			std::cout << "\n";
+			return true;
+		});
 	}
 
 	template<class Formatter = identity_format>
@@ -525,20 +528,23 @@ public:
 	}
 
 private:
-	template<class Formatter>
-	void print_sets_rec(node f, std::vector<uint32_t>& set, Formatter&& fmt)
+	template<class Fn>
+	bool foreach_set_rec(node f, std::vector<uint32_t>& set, Fn&& fn)
 	{
 		if (f == 1) {
-			for (auto v : set) {
-				std::cout << fmt(v) << " ";
-			}
-			std::cout << "\n";
+			return fn(set);
 		} else if (f != 0) {
-			print_sets_rec(nodes[f].lo, set, fmt);
+			if (!foreach_set_rec(nodes[f].lo, set, fn)) {
+				return false;
+			}
 			auto set1 = set;
 			set1.push_back(nodes[f].var);
-			print_sets_rec(nodes[f].hi, set1, fmt);
+			if (!foreach_set_rec(nodes[f].hi, set1, fn)) {
+				return false;
+			}
 		}
+
+		return true;
 	}
 
 public:
@@ -638,255 +644,5 @@ private:
 	std::unordered_map<std::tuple<uint32_t, uint32_t, uint32_t, op_t>, node, compute3_table_hash>
 	    compute3_table;
 };
-#pragma endregion
-
-namespace detail {
-
-template<typename Ntk>
-class find_maximal_partitions_impl {
-public:
-	find_maximal_partitions_impl(Ntk const& circ, device_t const& arch)
-	    : circ_(circ)
-	    , arch_(arch)
-	    , zdd_(circ.num_qubits() * arch.num_vertices, 19)
-	    , from_(circ.num_qubits())
-	    , to_(arch.num_vertices)
-			, edge_perm_(arch.num_vertices, 0)
-	    , fmt_(circ.num_qubits())
-	{
-		std::iota(edge_perm_.begin(), edge_perm_.end(), 0);
-	}
-
-	void run()
-	{
-		// zdd_.build_tautologies();
-		init_from();
-		init_to();
-		init_valid();
-		zdd_.garbage_collect();
-		init_bad();
-		//for (auto& t : to_)
-		//	zdd_.deref(t);
-		zdd_.garbage_collect();
-
-		std::vector<zdd_base::node> mappings;
-		uint32_t c, t;
-		auto m = zdd_.bot();
-		uint32_t ctr = 0;
-		circ_.foreach_cgate([&](auto const& n) {
-			if (n.gate.is_double_qubit()) {
-				n.gate.foreach_control([&](auto _c) { c = _c; });
-				n.gate.foreach_target([&](auto _t) { t = _t; });
-
-				// std::cout << c << " " << t << "\n";
-
-				// HACK
-				if (ctr == 2) {
-					std::cout << "add swap\n";
-
-					std::cout << "valid before:\n";
-					zdd_.print_sets(valid_, fmt_);
-
-					std::swap(edge_perm_[0], edge_perm_[1]);
-					zdd_.deref(valid_);
-					init_valid();
-
-					std::cout << "valid after:\n";
-					zdd_.print_sets(valid_, fmt_);
-				}
-
-				std::cout << "add gate " << ctr << "\n";
-
-				if (m == zdd_.bot()) {
-					/* first gate */
-					m = map(c, t);
-				} else {
-					auto m_next = map(c, t);
-					if (auto mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_);
-					    mp == zdd_.bot()) {
-						std::cout << "add new mapping\n";
-						zdd_.ref(m);
-						mappings.push_back(m);
-						m = m_next;
-						zdd_.ref(m);
-						zdd_.garbage_collect();
-						zdd_.deref(m);
-					} else {
-						m = mp;
-					}
-				}
-				++ctr;
-			}
-		});
-		zdd_.ref(m);
-		mappings.push_back(m);
-
-		uint32_t total{0};
-		for (auto const& map : mappings) {
-			std::cout << "found mapping with " << zdd_.count_sets(map)
-			          << " mappings using " << zdd_.count_nodes(map) << " nodes.\n";
-			total += zdd_.count_sets(map);
-      //zdd_.print_sets(map, fmt_);
-			zdd_.deref(map);
-		}
-		zdd_.summary();
-		std::cout << "Total mappings: " << total << "\n";
-
-		zdd_.deref(valid_);
-		zdd_.deref(bad_);
-		for (auto& f : from_)
-			zdd_.deref(f);
-		zdd_.garbage_collect();
-		// zdd_.debug();
-	}
-
-private:
-	auto index(uint32_t v, uint32_t p) const
-	{
-		// return p * circ_.num_qubits() + v;
-		return v * arch_.num_vertices + p;
-	}
-
-	void init_from()
-	{
-		for (auto v = 0u; v < circ_.num_qubits(); ++v) {
-			auto set = zdd_.bot();
-			for (int p = arch_.num_vertices - 1; p >= 0; --p) {
-				set = zdd_.union_(set, zdd_.elementary(index(v, p)));
-			}
-			from_[v] = set;
-			zdd_.ref(set);
-		}
-	}
-
-	void init_to()
-	{
-		for (auto p = 0u; p < arch_.num_vertices; ++p) {
-			auto set = zdd_.bot();
-			for (int v = circ_.num_qubits() - 1; v >= 0; --v) {
-				set = zdd_.union_(set, zdd_.elementary(index(v, p)));
-			}
-			to_[p] = set;
-			zdd_.ref(set);
-		}
-	}
-
-	void init_valid()
-	{
-		valid_ = zdd_.bot();
-		for (auto const& [p, q] : arch_.edges) {
-			valid_ = zdd_.union_(valid_, zdd_.join(to_[edge_perm_[p]], to_[edge_perm_[q]]));
-		}
-		zdd_.ref(valid_);
-	}
-
-	void init_bad()
-	{
-		bad_ = zdd_.bot();
-		for (int v = circ_.num_qubits() - 1; v >= 0; --v) {
-			bad_ = zdd_.union_(bad_, zdd_.choose(from_[v], 2));
-		}
-		for (int p = arch_.num_vertices - 1; p >= 0; --p) {
-			bad_ = zdd_.union_(bad_, zdd_.choose(to_[p], 2));
-		}
-		zdd_.ref(bad_);
-	}
-
-	zdd_base::node map(uint32_t c, uint32_t t)
-	{
-		return zdd_.intersection(zdd_.join(from_[c], from_[t]), valid_);
-	}
-
-private:
-	Ntk const& circ_;
-	device_t const& arch_;
-
-	zdd_base zdd_;
-	std::vector<zdd_base::node> from_, to_;
-	zdd_base::node valid_, bad_;
-	std::vector<uint32_t> edge_perm_;
-
-	struct set_formatter_t {
-		set_formatter_t(uint32_t n)
-		    : n(n)
-		{}
-		std::string operator()(uint32_t v) const
-		{
-			//return std::string(1, 'a' + (v % n)) + std::string(1, 'A' + (v / n));
-			return std::string(1, 'a' + (v / n)) + std::string(1, 'A' + (v % n));
-		}
-
-	private:
-		uint32_t n;
-	} fmt_;
-};
-
-} // namespace detail
-
-template<typename Ntk>
-void find_maximal_partitions(Ntk const& circ, device_t const& arch)
-{
-#if 0
-	zdd_base zdd_map(arch.edges.size());
-	zdd_map.build_tautologies();
-
-	struct edge_formatter_t {
-		edge_formatter_t(std::vector<std::pair<uint8_t, uint8_t>> const& edges)
-		    : edges(edges)
-		{}
-
-		std::string operator()(uint32_t v) const
-		{
-			return std::string(1, 'A' + edges[v].first)
-			       + std::string(1, 'A' + edges[v].second) + "(" + std::to_string(v) + ")";
-		}
-
-	private:
-		std::vector<std::pair<uint8_t, uint8_t>> const& edges;
-	} fmt(arch.edges);
-
-	std::vector<std::vector<uint8_t>> incidents(arch.num_vertices);
-	for (auto i = 0u; i < arch.edges.size(); ++i) {
-		incidents[arch.edges[i].first].push_back(i);
-		incidents[arch.edges[i].second].push_back(i);
-	}
-
-	std::vector<zdd_base::node> from;
-	for (auto& i : incidents) {
-		std::sort(i.rbegin(), i.rend());
-		auto set = zdd_map.bot();
-		for (auto o : i) {
-			set = zdd_map.union_(set, zdd_map.elementary(o));
-		}
-		from.push_back(set);
-		std::cout << "Sets = \n";
-		zdd_map.print_sets(from.back(), fmt);
-	}
-
-  auto set = zdd_map.bot();
-  for (auto const& f : from) {
-    std::cout << "CHOOSE\n";
-    zdd_map.print_sets(zdd_map.choose(f, 2), fmt);
-    set = zdd_map.union_(set, zdd_map.choose(f, 2));
-  }
-
-  std::cout << "A!\n";
-  zdd_map.print_sets(set, fmt);
-
-  auto legal = zdd_map.nonsupersets(zdd_map.tautology(), set);
-  std::cout << "B!\n";
-  zdd_map.print_sets(legal, fmt);
-
-	// zdd_map.print_sets(zdd_map.tautology());
-	return;
-#endif
-
-	detail::find_maximal_partitions_impl<Ntk> impl(circ, arch);
-	impl.run();
-
-	//zdd_base z(4);
-
-	//z.debug();
-}
 
 } // namespace tweedledum
