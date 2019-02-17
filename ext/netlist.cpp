@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include <tweedledum/gates/mcst_gate.hpp>
+#include <tweedledum/io/qasm.hpp>
 #include <tweedledum/io/quil.hpp>
 #include <tweedledum/io/write_unicode.hpp>
 #include <tweedledum/networks/netlist.hpp>
@@ -66,6 +67,8 @@ void gate( py::module m )
 
 void netlist( py::module m )
 {
+  using namespace py::literals;
+
   py::class_<netlist_t> _netlist( m, "netlist", "Quantum circuit data structure" );
   _netlist.def_property_readonly( "num_gates", &netlist_t::num_gates, "Number of quantum gates in circuit" );
   _netlist.def_property_readonly( "num_qubits", &netlist_t::num_qubits, "Number of qubits in circuit" );
@@ -78,14 +81,24 @@ void netlist( py::module m )
     
     :rtype: List[gate]
 )doc" );
+
   _netlist.def( "to_quil", []( netlist_t const& ref ) {
     std::ostringstream s;
     tweedledum::write_quil( ref, s );
     return s.str();
   }, "Write circuit to QUIL code" );
-  _netlist.def( "to_unicode", []( netlist_t const& ref ) { 
-    return tweedledum::to_unicode_str( ref );
-  }, "Write circuit to Unicode representation" );
+
+  _netlist.def( "to_qasm", []( netlist_t const& ref ) {
+    std::ostringstream s;
+    tweedledum::write_qasm( ref, s );
+    return s.str();
+  }, "Write circuit to QASM code" );
+
+  _netlist.def( "to_unicode", []( netlist_t const& ref, bool fancy ) { 
+    std::ostringstream s;
+    tweedledum::write_unicode( ref, fancy, s );
+    return s.str();
+  }, "Write circuit to Unicode representation", "fancy"_a = true );
 }
 
 } // namespace revkit
