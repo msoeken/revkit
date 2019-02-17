@@ -14,4 +14,4 @@ Data structures
 
 .. autoclass:: revkit.truth_table
    :members:
-   :special-members: __str__
+   :special-members: __str__, __eq__
