@@ -5,6 +5,8 @@ Synthesis algorithms
 
 .. autofunction:: revkit.oracle_synth
 
+.. autofunction:: revkit.diagonal_synth
+
 .. autoclass:: revkit.oracle_synth_type
    :members:
    :undoc-members:

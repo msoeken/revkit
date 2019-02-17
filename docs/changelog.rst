@@ -16,6 +16,7 @@ Version 3.1 (not yet released)
 * Synthesis algorithms:
     - Decomposition-based synthesis (:func:`revkit.dbs`)
     - Gray synthesis (:func:`revkit.gray_synth`)
+    - Diagonal unitary synthesis (:func:`revkit.diagonal_synth`)
     - Oracle synthesis (:func:`revkit.oracle_synth`)
     - Transformation-based synthesis (:func:`revkit.tbs`)
 
