@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <tweedledum/algorithms/synthesis/dbs.hpp>
+#include <tweedledum/algorithms/synthesis/diagonal_synth.hpp>
 #include <tweedledum/algorithms/synthesis/gray_synth.hpp>
 #include <tweedledum/algorithms/synthesis/stg.hpp>
 #include <tweedledum/algorithms/synthesis/tbs.hpp>
@@ -117,6 +118,21 @@ void synthesis( py::module m )
     :rtype: netlist
 )doc",
          "function"_a, "kind"_a = oracle_synth_type::spectrum );
+
+  m.def( "diagonal_synth", [&]( std::vector<double> const& angles ) {
+    return tweedledum::diagonal_synth<netlist_t>( angles );
+  }, R"doc(
+    Diagonal unitary synthesis
+
+    Creates a quantum circuit for a diagonal unitary
+    :math:`\text{diag}(1, e^{-i\theta_1}, \dots, e^{-i\theta_{2^n-1}})`
+    where the input parameters provides the angles :math:`\theta_1, \dots, \theta_{2^n-1}`.
+
+    :param List[float] angles: List of :math:`2^n - 1` angles
+    :rtype: netlist
+
+    .. seealso:: `tweedledum documentation for diagonal_synth <https://tweedledum.readthedocs.io/en/latest/algorithms/synthesis/diagonal_synth.html>`_
+)doc" );
 
   m.def( "dbs", []( std::vector<uint32_t> const& perm, oracle_synth_type kind ) {
     switch ( kind )
