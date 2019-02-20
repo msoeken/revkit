@@ -45,7 +45,7 @@ class xag_mapping_strategy
   {
     std::vector<SignalCone> cones;
         
-    xag.foreach_fanin( node, [&]( auto s, auto i ) {
+    xag.foreach_fanin( node, [&]( auto s ) {
       SignalCone cone;
       cone.node = node;
 

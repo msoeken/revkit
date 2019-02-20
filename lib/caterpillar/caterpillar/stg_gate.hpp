@@ -25,43 +25,46 @@ public:
   stg_gate( gate_base const& op, td::qubit_id target )
     : td::gate_base( op )
   {
-    (void)target;
+    assert( is_single_qubit() );
+    _targets.push_back( target );
+  }
+
+  stg_gate( gate_base const& op, td::qubit_id control, td::qubit_id target )
+      : gate_base( op )
+  {
+    assert( is_double_qubit() );
+    _controls.push_back( control );
+    _targets.push_back( target );
+  }
+
+  stg_gate( gate_base const& op, std::vector<td::qubit_id> const& controls, std::vector<td::qubit_id> const& targets )
+      : td::gate_base( op ),
+        _controls( controls ),
+        _targets( targets )
+  {
   }
 
   stg_gate( kitty::dynamic_truth_table const& function, std::vector<td::qubit_id> const& controls, td::qubit_id target )
       : gate_base( td::gate_set::num_defined_ops ),
         _function( function ),
-        _controls( controls ),
-        _target( target )
+        _controls( controls )
   {
+    _targets.push_back( target );
   }
 
-  stg_gate( std::vector<td::qubit_id> const& controls, td::qubit_id target )
-      : gate_base( td::gate_set::mcx ),
-        _controls( controls ),
-        _target( target )
+  bool is_unitary_gate() const
   {
+    return td::gate_base::is_unitary_gate() || operation() == td::gate_set::num_defined_ops;
   }
-
-  stg_gate( gate_base const& op, std::vector<td::qubit_id> const& controls, td::qubit_id target )
-      : td::gate_base( op ),
-        _controls( controls ),
-        _target( target )
-  {
-  }
-
-  stg_gate( gate_base const& op, std::vector<td::qubit_id> const& controls, std::vector<td::qubit_id> target )
-      : td::gate_base( op ),
-        _controls( controls ),
-        _target( target[0] )
-  {
-  }
-
-  bool is_unitary_gate() const { return operation() == td::gate_set::num_defined_ops || operation() == td::gate_set::mcx; }
 
   uint32_t num_controls() const
   {
     return _controls.size();
+  }
+
+  uint32_t num_targets() const
+  {
+    return _targets.size();
   }
 
   template<typename Fn>
@@ -76,18 +79,21 @@ public:
   template<typename Fn>
   void foreach_target( Fn&& fn ) const
   {
-    fn( _target );
+    for ( auto t : _targets )
+    {
+      fn( t );
+    }
   }
 
 private:
-  /*! \brief control function of the stg */
+  /*! \brief control function of a single-target gate */
   kitty::dynamic_truth_table _function;
 
-  /*! \brief set qubits in the network are the controls. */
-  std::vector<td::qubit_id> _controls;
+  /*! \brief set control qubits in the network. */
+  std::vector<td::qubit_id> _controls{};
 
-  /*! \brief target of the gate. */
-  td::qubit_id _target;
+  /*! \brief set of target qubits in the network. */
+  std::vector<td::qubit_id> _targets{};
 };
 
 } // namespace caterpillar
