@@ -26,8 +26,16 @@ qcircuit = circuit.to_qiskit()
 
 ## Installation
 
+From PyPi *(not yet available)*
+
 ```
 pip install revkit
+```
+
+From Github with `setuptools`
+
+```
+pip install git+https://github.com/msoeken/revkit@develop
 ```
 
 ## Previous versions
