@@ -38,6 +38,14 @@ From Github with `setuptools`
 pip install git+https://github.com/msoeken/revkit@develop
 ```
 
+From Github with `make`
+
+```
+git clone -b develop https://github.com/msoeken/revkit
+cd revkit
+make devbuild
+```
+
 ## Previous versions
 
 RevKit has a 10-year long history. The rapidly changing requirements for
