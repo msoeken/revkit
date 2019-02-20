@@ -3,8 +3,14 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <unordered_map>
 #include <vector>
 
+#include <caterpillar/synthesis/lhrs.hpp>
+#include <lorina/verilog.hpp>
+#include <mockturtle/io/verilog_reader.hpp>
+#include <mockturtle/networks/aig.hpp>
+#include <mockturtle/networks/mig.hpp>
 #include <tweedledum/algorithms/synthesis/dbs.hpp>
 #include <tweedledum/algorithms/synthesis/diagonal_synth.hpp>
 #include <tweedledum/algorithms/synthesis/gray_synth.hpp>
@@ -17,6 +23,25 @@ namespace py = pybind11;
 
 namespace revkit
 {
+
+template<class LogicNetwork>
+std::pair<netlist_t, std::unordered_map<std::string, std::vector<uint32_t>>>
+_lhrs_wrapper( std::string const& filename )
+{
+  LogicNetwork ntk;
+
+  lorina::read_verilog( filename, mockturtle::verilog_reader( ntk ) );
+
+  netlist_t circ;
+  caterpillar::logic_network_synthesis_stats st;
+  caterpillar::logic_network_synthesis( circ, ntk, {}, {}, &st );
+
+  std::unordered_map<std::string, std::vector<uint32_t>> stats;
+  stats["input_indexes"] = st.i_indexes;
+  stats["output_indexes"] = st.o_indexes;
+
+  return std::make_pair( circ, stats );
+}
 
 void synthesis( py::module m )
 {
@@ -166,6 +191,10 @@ void synthesis( py::module m )
     .. seealso:: `tweedledum documentation for tbs <https://tweedledum.readthedocs.io/en/latest/algorithms/synthesis/tbs.html>`_
 )doc",
          "perm"_a );
+
+  m.def( "lhrs", []( std::string const& filename ) { 
+    return _lhrs_wrapper<mockturtle::mig_network>( filename );
+  } );
 }
 
 } // namespace revkit
