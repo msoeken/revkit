@@ -19,6 +19,7 @@ Version 3.1 (not yet released)
     - Diagonal unitary synthesis (:func:`revkit.diagonal_synth`)
     - Oracle synthesis (:func:`revkit.oracle_synth`)
     - Transformation-based synthesis (:func:`revkit.tbs`)
+    - LUT-based hierarchical reversible logic synthesis (:func:`revkit.lhrs`)
 
 * Interoperability:
     - Create Qiskit quantum circuit from RevKit quantum circuit (:func:`revkit.netlist.to_qiskit`)

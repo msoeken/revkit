@@ -14,3 +14,9 @@ Synthesis algorithms
 .. autofunction:: revkit.dbs
 
 .. autofunction:: revkit.tbs
+
+.. autoclass:: revkit.lhrs_network_type
+   :members:
+   :undoc-members:
+
+.. autofunction:: revkit.lhrs

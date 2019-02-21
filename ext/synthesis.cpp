@@ -188,7 +188,7 @@ void synthesis( py::module m )
     function.  The target qubit is the last qubit in the circuit.
 
     :param truth_table function: Oracle function
-    :param kind: Synthesis type
+    :param oracle_synth_type kind: Synthesis type
     :rtype: netlist
 )doc",
       "function"_a, "kind"_a = oracle_synth_type::spectrum );
@@ -227,7 +227,7 @@ void synthesis( py::module m )
     Decomposition-based synthesis
 
     :param List[int] perm: A permutation of the values :math:`\{0, \dots, 2^n - 1\}`.
-    :param kind: Synthesis type
+    :param oracle_synth_type kind: Synthesis type
     :rtype: netlist
 
     .. seealso:: `tweedledum documentation for dbs <https://tweedledum.readthedocs.io/en/latest/algorithms/synthesis/dbs.html>`_
@@ -290,8 +290,31 @@ void synthesis( py::module m )
         case lhrs_network_type::klut:
           return _lhrs_wrapper<mockturtle::klut_network>( filename, lut_synthesis_fn );
         }
-      },
-      "LUT-based hierarchical reversible logic synthesis", "filename"_a, "network_type"_a = lhrs_network_type::xag, "lut_synthesis"_a = oracle_synth_type::spectrum );
+      }, R"doc(
+    LUT-based hierarchical reversible logic synthesis
+
+    This synthesis method creates a quantum circuit based on a combinational
+    logic network.  The logic network is read from a file in various file
+    formats (Verilog ``*.v``, Aiger ``*.aig``, and BENCH ``*.bench``).  Also,
+    the logic networks can be represented in different logic network types.  Not
+    every logic network type can be used with every file format.  The following
+    list shows compatible combinations:
+
+    +---------------------+--------------------------------+
+    | File format         | Compatible logic network types |
+    +=====================+================================+
+    | Verilog (``*.v``)   | aig, xag, mig, xmg             |
+    +---------------------+--------------------------------+
+    | Aiger (``*.aig``)   | aig, xag, mig, xmg, klut       |
+    +---------------------+--------------------------------+
+    | BENCH (``*.bench``) | klut                           |
+    +---------------------+--------------------------------+
+
+    :param string filename: Filename to a logic network
+    :param lhrs_network_type network_type: Logic network representation type
+    :param oracle_synth_type lut_synthesis: Oracle synthesis method for LUT functions
+    :rtype: (netlist, dict)
+)doc", "filename"_a, "network_type"_a = lhrs_network_type::xag, "lut_synthesis"_a = oracle_synth_type::spectrum );
 }
 
 } // namespace revkit
