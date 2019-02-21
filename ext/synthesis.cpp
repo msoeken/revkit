@@ -33,17 +33,19 @@ namespace py = pybind11;
 namespace revkit
 {
 
-std::string _filename_extension( const std::string& filename ) {
+std::string _filename_extension( const std::string& filename )
+{
 
-   size_t i = filename.rfind( '.', filename.length() );
-   if ( i != std::string::npos ) {
-      return filename.substr( i + 1, filename.length() - i );
-   }
+  size_t i = filename.rfind( '.', filename.length() );
+  if ( i != std::string::npos )
+  {
+    return filename.substr( i + 1, filename.length() - i );
+  }
 
-   return std::string();
+  return std::string();
 }
 
-using lut_synthesis_t = std::function<void(netlist_t&, std::vector<tweedledum::qubit_id> const&, kitty::dynamic_truth_table const&)>;
+using lut_synthesis_t = std::function<void( netlist_t&, std::vector<tweedledum::qubit_id> const&, kitty::dynamic_truth_table const& )>;
 
 template<class LogicNetwork>
 std::pair<netlist_t, std::unordered_map<std::string, std::vector<uint32_t>>>
@@ -92,34 +94,35 @@ void synthesis( py::module m )
 {
   using namespace py::literals;
 
-  m.def( "gray_synth", []( py::args parity_terms ) {
-    uint32_t num_vars = 0u;
+  m.def(
+      "gray_synth", []( py::args parity_terms ) {
+        uint32_t num_vars = 0u;
 
-    tweedledum::parity_terms parities;
-    for ( auto const& entry : parity_terms )
-    {
-      auto const& tuple = entry.cast<py::tuple>();
-      std::string term = tuple[0].cast<py::str>();
-      double angle = tuple[1].cast<py::float_>();
-
-      if ( num_vars == 0u )
-      {
-        num_vars = term.size();
-      }
-
-      uint32_t iterm{0u};
-      for ( auto i = 0u; i < term.size(); ++i )
-      {
-        if ( term[i] == '1' )
+        tweedledum::parity_terms parities;
+        for ( auto const& entry : parity_terms )
         {
-          iterm |= 1 << i;
+          auto const& tuple = entry.cast<py::tuple>();
+          std::string term = tuple[0].cast<py::str>();
+          double angle = tuple[1].cast<py::float_>();
+
+          if ( num_vars == 0u )
+          {
+            num_vars = term.size();
+          }
+
+          uint32_t iterm{0u};
+          for ( auto i = 0u; i < term.size(); ++i )
+          {
+            if ( term[i] == '1' )
+            {
+              iterm |= 1 << i;
+            }
+          }
+          parities.add_term( iterm, tweedledum::angle( angle ) );
         }
-      }
-      parities.add_term( iterm, tweedledum::angle( angle ) );
-    }
-    return tweedledum::gray_synth<netlist_t>( num_vars, parities );
-  },
-         R"doc(
+        return tweedledum::gray_synth<netlist_t>( num_vars, parities );
+      },
+      R"doc(
     GraySynth synthesis algorithm for parity terms
 
     :param List[(str,float)] args: A list of tuples of parity terms.
@@ -152,32 +155,33 @@ void synthesis( py::module m )
       .value( "spectrum", oracle_synth_type::spectrum )
       .export_values();
 
-  m.def( "oracle_synth", []( truth_table_t const& function, oracle_synth_type kind ) {
-    netlist_t circ;
-    for ( auto i = 0u; i < function.num_vars() + 1u; ++i )
-    {
-      circ.add_qubit();
-    }
-    std::vector<tweedledum::qubit_id> qubits( function.num_vars() + 1u );
-    std::iota( qubits.begin(), qubits.end(), 0u );
+  m.def(
+      "oracle_synth", []( truth_table_t const& function, oracle_synth_type kind ) {
+        netlist_t circ;
+        for ( auto i = 0u; i < function.num_vars() + 1u; ++i )
+        {
+          circ.add_qubit();
+        }
+        std::vector<tweedledum::qubit_id> qubits( function.num_vars() + 1u );
+        std::iota( qubits.begin(), qubits.end(), 0u );
 
-    switch ( kind )
-    {
-    default:
-    case oracle_synth_type::spectrum:
-      tweedledum::stg_from_spectrum()( circ, qubits, function );
-      break;
-    case oracle_synth_type::pkrm:
-      tweedledum::stg_from_pkrm()( circ, qubits, function );
-      break;
-    case oracle_synth_type::pprm:
-      tweedledum::stg_from_pprm()( circ, qubits, function );
-      break;
-    }
+        switch ( kind )
+        {
+        default:
+        case oracle_synth_type::spectrum:
+          tweedledum::stg_from_spectrum()( circ, qubits, function );
+          break;
+        case oracle_synth_type::pkrm:
+          tweedledum::stg_from_pkrm()( circ, qubits, function );
+          break;
+        case oracle_synth_type::pprm:
+          tweedledum::stg_from_pprm()( circ, qubits, function );
+          break;
+        }
 
-    return circ;
-  },
-         R"doc(
+        return circ;
+      },
+      R"doc(
     Oracle synthesis
 
     Creates a quantum circuit that flips the target qubit based on a Boolean
@@ -187,11 +191,13 @@ void synthesis( py::module m )
     :param kind: Synthesis type
     :rtype: netlist
 )doc",
-         "function"_a, "kind"_a = oracle_synth_type::spectrum );
+      "function"_a, "kind"_a = oracle_synth_type::spectrum );
 
-  m.def( "diagonal_synth", [&]( std::vector<double> const& angles ) {
-    return tweedledum::diagonal_synth<netlist_t>( angles );
-  }, R"doc(
+  m.def(
+      "diagonal_synth", [&]( std::vector<double> const& angles ) {
+        return tweedledum::diagonal_synth<netlist_t>( angles );
+      },
+      R"doc(
     Diagonal unitary synthesis
 
     Creates a quantum circuit for a diagonal unitary
@@ -204,19 +210,20 @@ void synthesis( py::module m )
     .. seealso:: `tweedledum documentation for diagonal_synth <https://tweedledum.readthedocs.io/en/latest/algorithms/synthesis/diagonal_synth.html>`_
 )doc" );
 
-  m.def( "dbs", []( std::vector<uint32_t> const& perm, oracle_synth_type kind ) {
-    switch ( kind )
-    {
-    default:
-    case oracle_synth_type::spectrum:
-      return tweedledum::dbs<netlist_t>( perm, tweedledum::stg_from_spectrum() );
-    case oracle_synth_type::pkrm:
-      return tweedledum::dbs<netlist_t>( perm, tweedledum::stg_from_pkrm() );
-    case oracle_synth_type::pprm:
-      return tweedledum::dbs<netlist_t>( perm, tweedledum::stg_from_pprm() );
-    }
-  },
-         R"doc(
+  m.def(
+      "dbs", []( std::vector<uint32_t> const& perm, oracle_synth_type kind ) {
+        switch ( kind )
+        {
+        default:
+        case oracle_synth_type::spectrum:
+          return tweedledum::dbs<netlist_t>( perm, tweedledum::stg_from_spectrum() );
+        case oracle_synth_type::pkrm:
+          return tweedledum::dbs<netlist_t>( perm, tweedledum::stg_from_pkrm() );
+        case oracle_synth_type::pprm:
+          return tweedledum::dbs<netlist_t>( perm, tweedledum::stg_from_pprm() );
+        }
+      },
+      R"doc(
     Decomposition-based synthesis
 
     :param List[int] perm: A permutation of the values :math:`\{0, \dots, 2^n - 1\}`.
@@ -225,9 +232,10 @@ void synthesis( py::module m )
 
     .. seealso:: `tweedledum documentation for dbs <https://tweedledum.readthedocs.io/en/latest/algorithms/synthesis/dbs.html>`_
 )doc",
-         "perm"_a, "kind"_a = oracle_synth_type::spectrum );
+      "perm"_a, "kind"_a = oracle_synth_type::spectrum );
 
-  m.def( "tbs", []( std::vector<uint32_t> const& perm ) { return tweedledum::tbs<netlist_t>( perm ); }, R"doc(
+  m.def(
+      "tbs", []( std::vector<uint32_t> const& perm ) { return tweedledum::tbs<netlist_t>( perm ); }, R"doc(
     Transformation based synthesis
 
     :param List[int] perm: A permutation of the values :math:`\{0, \dots, 2^n - 1\}`.
@@ -235,7 +243,7 @@ void synthesis( py::module m )
 
     .. seealso:: `tweedledum documentation for tbs <https://tweedledum.readthedocs.io/en/latest/algorithms/synthesis/tbs.html>`_
 )doc",
-         "perm"_a );
+      "perm"_a );
 
   enum class lhrs_network_type
   {
@@ -254,35 +262,36 @@ void synthesis( py::module m )
       .value( "klut", lhrs_network_type::klut )
       .export_values();
 
-  m.def( "lhrs", []( std::string const& filename, lhrs_network_type network_type, oracle_synth_type lut_synthesis ) {
-    const auto lut_synthesis_fn = [&]() {
-      switch ( lut_synthesis ) {
-        default:
-        case oracle_synth_type::spectrum:
-          return lut_synthesis_t(tweedledum::stg_from_spectrum{});
-        case oracle_synth_type::pprm:
-          return lut_synthesis_t(tweedledum::stg_from_pprm{});
-        case oracle_synth_type::pkrm:
-          return lut_synthesis_t(tweedledum::stg_from_pkrm{});
-      }
-    }();
+  m.def(
+      "lhrs", []( std::string const& filename, lhrs_network_type network_type, oracle_synth_type lut_synthesis ) {
+        const auto lut_synthesis_fn = [&]() {
+          switch ( lut_synthesis )
+          {
+          default:
+          case oracle_synth_type::spectrum:
+            return lut_synthesis_t( tweedledum::stg_from_spectrum{} );
+          case oracle_synth_type::pprm:
+            return lut_synthesis_t( tweedledum::stg_from_pprm{} );
+          case oracle_synth_type::pkrm:
+            return lut_synthesis_t( tweedledum::stg_from_pkrm{} );
+          }
+        }();
 
-    switch ( network_type ) {
-      case lhrs_network_type::aig:
-        return _lhrs_wrapper<mockturtle::aig_network>( filename, lut_synthesis_fn );
-      case lhrs_network_type::xag:
-        return _lhrs_wrapper<mockturtle::xag_network>( filename, lut_synthesis_fn );
-      case lhrs_network_type::mig:
-        return _lhrs_wrapper<mockturtle::mig_network>( filename, lut_synthesis_fn );
-      case lhrs_network_type::xmg:
-        return _lhrs_wrapper<mockturtle::xmg_network>( filename, lut_synthesis_fn );
-      case lhrs_network_type::klut:
-        return _lhrs_wrapper<mockturtle::klut_network>( filename, lut_synthesis_fn );
-    }
-  }, "LUT-based hierarchical reversible logic synthesis",
-  "filename"_a,
-  "network_type"_a = lhrs_network_type::xag,
-  "lut_synthesis"_a = oracle_synth_type::spectrum );
+        switch ( network_type )
+        {
+        case lhrs_network_type::aig:
+          return _lhrs_wrapper<mockturtle::aig_network>( filename, lut_synthesis_fn );
+        case lhrs_network_type::xag:
+          return _lhrs_wrapper<mockturtle::xag_network>( filename, lut_synthesis_fn );
+        case lhrs_network_type::mig:
+          return _lhrs_wrapper<mockturtle::mig_network>( filename, lut_synthesis_fn );
+        case lhrs_network_type::xmg:
+          return _lhrs_wrapper<mockturtle::xmg_network>( filename, lut_synthesis_fn );
+        case lhrs_network_type::klut:
+          return _lhrs_wrapper<mockturtle::klut_network>( filename, lut_synthesis_fn );
+        }
+      },
+      "LUT-based hierarchical reversible logic synthesis", "filename"_a, "network_type"_a = lhrs_network_type::xag, "lut_synthesis"_a = oracle_synth_type::spectrum );
 }
 
 } // namespace revkit
