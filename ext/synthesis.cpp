@@ -4,11 +4,15 @@
 #include <algorithm>
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include <caterpillar/synthesis/lhrs.hpp>
+#include <caterpillar/synthesis/strategies/eager_mapping_strategy.hpp>
+#include <caterpillar/synthesis/strategies/bennett_mapping_strategy.hpp>
+#include <caterpillar/synthesis/strategies/pebbling_mapping_strategy.hpp>
 #include <lorina/aiger.hpp>
 #include <lorina/bench.hpp>
 #include <lorina/verilog.hpp>
@@ -33,6 +37,14 @@ namespace py = pybind11;
 namespace revkit
 {
 
+enum class mapping_strategy_type
+{
+  bennett,
+  bennett_inplace,
+  eager,
+  pebbling
+};
+
 std::string _filename_extension( const std::string& filename )
 {
 
@@ -49,7 +61,7 @@ using lut_synthesis_t = std::function<void( netlist_t&, std::vector<tweedledum::
 
 template<class LogicNetwork>
 std::pair<netlist_t, std::unordered_map<std::string, std::vector<uint32_t>>>
-_lhrs_wrapper( std::string const& filename, lut_synthesis_t const& lut_synthesis )
+_lhrs_wrapper( std::string const& filename, mapping_strategy_type strategy_type, lut_synthesis_t const& lut_synthesis, uint32_t num_pebbles )
 {
   LogicNetwork ntk;
 
@@ -62,6 +74,10 @@ _lhrs_wrapper( std::string const& filename, lut_synthesis_t const& lut_synthesis
     {
       lorina::read_verilog( filename, mockturtle::verilog_reader( ntk ) );
     }
+    else
+    {
+      throw "unsupported network type for Verilog files";
+    }
   }
   else if ( ext == "aig" )
   {
@@ -73,15 +89,37 @@ _lhrs_wrapper( std::string const& filename, lut_synthesis_t const& lut_synthesis
     {
       lorina::read_bench( filename, mockturtle::bench_reader( ntk ) );
     }
+    else
+    {
+      throw "unsupported network type for BENCH files";
+    }
   }
   else
   {
     throw "unknown file extension: " + ext;
   }
 
+  auto strategy = [&]() -> std::shared_ptr<caterpillar::mapping_strategy<LogicNetwork>> {
+    switch ( strategy_type )
+    {
+      default:
+      case mapping_strategy_type::bennett_inplace:
+        return std::make_shared<caterpillar::bennett_inplace_mapping_strategy<LogicNetwork>>();
+      case mapping_strategy_type::bennett:
+        return std::make_shared<caterpillar::bennett_mapping_strategy<LogicNetwork>>();
+      case mapping_strategy_type::eager:
+        return std::make_shared<caterpillar::eager_mapping_strategy<LogicNetwork>>();
+      case mapping_strategy_type::pebbling: {
+        caterpillar::pebbling_mapping_strategy_params ps;
+        ps.pebble_limit = num_pebbles;
+        return std::make_shared<caterpillar::pebbling_mapping_strategy<LogicNetwork>>( ps );
+      }
+    }
+  }();
+
   netlist_t circ;
   caterpillar::logic_network_synthesis_stats st;
-  caterpillar::logic_network_synthesis( circ, ntk, lut_synthesis, {}, &st );
+  caterpillar::logic_network_synthesis( circ, ntk, *strategy, lut_synthesis, {}, &st );
 
   std::unordered_map<std::string, std::vector<uint32_t>> stats;
   stats["input_indexes"] = st.i_indexes;
@@ -262,8 +300,15 @@ void synthesis( py::module m )
       .value( "klut", lhrs_network_type::klut )
       .export_values();
 
+  py::enum_<mapping_strategy_type>( m, "mapping_strategy", "LHRS mapping strategy" )
+      .value( "bennett", mapping_strategy_type::bennett )
+      .value( "bennett_inplace", mapping_strategy_type::bennett_inplace )
+      .value( "eager", mapping_strategy_type::eager )
+      .value( "pebbling", mapping_strategy_type::pebbling )
+      .export_values();
+
   m.def(
-      "lhrs", []( std::string const& filename, lhrs_network_type network_type, oracle_synth_type lut_synthesis ) {
+      "lhrs", []( std::string const& filename, lhrs_network_type network_type, mapping_strategy_type strategy, oracle_synth_type lut_synthesis, uint32_t num_pebbles ) {
         const auto lut_synthesis_fn = [&]() {
           switch ( lut_synthesis )
           {
@@ -280,15 +325,15 @@ void synthesis( py::module m )
         switch ( network_type )
         {
         case lhrs_network_type::aig:
-          return _lhrs_wrapper<mockturtle::aig_network>( filename, lut_synthesis_fn );
+          return _lhrs_wrapper<mockturtle::aig_network>( filename, strategy, lut_synthesis_fn, num_pebbles );
         case lhrs_network_type::xag:
-          return _lhrs_wrapper<mockturtle::xag_network>( filename, lut_synthesis_fn );
+          return _lhrs_wrapper<mockturtle::xag_network>( filename, strategy, lut_synthesis_fn, num_pebbles );
         case lhrs_network_type::mig:
-          return _lhrs_wrapper<mockturtle::mig_network>( filename, lut_synthesis_fn );
+          return _lhrs_wrapper<mockturtle::mig_network>( filename, strategy, lut_synthesis_fn, num_pebbles );
         case lhrs_network_type::xmg:
-          return _lhrs_wrapper<mockturtle::xmg_network>( filename, lut_synthesis_fn );
+          return _lhrs_wrapper<mockturtle::xmg_network>( filename, strategy, lut_synthesis_fn, num_pebbles );
         case lhrs_network_type::klut:
-          return _lhrs_wrapper<mockturtle::klut_network>( filename, lut_synthesis_fn );
+          return _lhrs_wrapper<mockturtle::klut_network>( filename, strategy, lut_synthesis_fn, num_pebbles );
         }
       }, R"doc(
     LUT-based hierarchical reversible logic synthesis
@@ -312,9 +357,10 @@ void synthesis( py::module m )
 
     :param string filename: Filename to a logic network
     :param lhrs_network_type network_type: Logic network representation type
+    :param mapping_strategy strategy: Qubit mapping strategy
     :param oracle_synth_type lut_synthesis: Oracle synthesis method for LUT functions
     :rtype: (netlist, dict)
-)doc", "filename"_a, "network_type"_a = lhrs_network_type::xag, "lut_synthesis"_a = oracle_synth_type::spectrum );
+)doc", "filename"_a, "network_type"_a = lhrs_network_type::xag, "strategy"_a = mapping_strategy_type::bennett_inplace, "lut_synthesis"_a = oracle_synth_type::spectrum, "num_pebbles"_a = 0u );
 }
 
 } // namespace revkit
