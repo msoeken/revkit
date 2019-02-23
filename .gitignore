@@ -1,0 +1,16 @@
+# Compilation
+build/
+dist/
+revkit.egg-info/
+venv
+**/__pycache__
+
+# Documentation
+docs/_build
+
+# IDE
+.vscode
+
+# Test
+.eggs
+.pytest_cache
