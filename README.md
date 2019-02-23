@@ -46,6 +46,10 @@ cd revkit
 make devbuild
 ```
 
+A very recent C++ compiler with support for C++ 17 is required to build RevKit.
+If compilation with the default compiler on your system does not work, try to
+setting the `CC` environment variable to a more recent compiler.
+
 ## Previous versions
 
 RevKit has a 10-year long history. The rapidly changing requirements for
