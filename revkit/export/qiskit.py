@@ -27,7 +27,11 @@ def _to_qiskit(self, circuit=None, with_classical_register=False):
   qr = [q for reg in circuit.qregs for q in reg]
 
   for g in self.gates:
-    if g.kind == gate.gate_type.hadamard:
+    if g.kind == gate.gate_type.pauli_x:
+      for t in g.targets:
+        circuit.x(qr[t])
+
+    elif g.kind == gate.gate_type.hadamard:
       for t in g.targets:
         circuit.h(qr[t])
 
