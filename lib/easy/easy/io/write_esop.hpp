@@ -1,5 +1,5 @@
 /* easy: C++ ESOP library
- * Copyright (C) 2018  EPFL
+ * Copyright (C) 2017-2018  EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,66 +26,52 @@
 #pragma once
 
 #include <easy/esop/esop.hpp>
+#include <lorina/pla.hpp>
+#include <ostream>
+#include <sstream>
 
-namespace easy::esop
+namespace easy
 {
 
-/*! \brief Compute the T-count of a product term
+/*! \brief Writes ESOP form in PLA format to output stream
  *
- * Compute the T-count of a product term.
- *
- * \param cube A product term
- * \param num_vars Total number of lines (or qubits)
- * \return T-count, i.e., the number of T-gates for realizing the product term
+ * \param os Output stream
+ * \param esop ESOP form
+ * \param num_vars Number of variables
  */
-inline uint64_t T_count( kitty::cube const& cube, uint32_t num_vars )
+inline void write_esop( std::ostream& os, esop::esop_t const& esop, unsigned num_vars )
 {
-  uint32_t const ac = cube.num_literals();
-
-  switch( ac )
+  lorina::pla_writer writer( os );
+  writer.on_number_of_inputs( num_vars );
+  writer.on_number_of_outputs( 1 );
+  writer.on_number_of_terms( esop.size() );
+  writer.on_keyword( "type", "esop" );
+  for ( const auto& e : esop )
   {
-  case 0u:
-  case 1u:
-    return 0u;
-  case 2u:
-    return 7u;
-  default:
-    break;
+    std::stringstream ss;
+    e.print( num_vars, ss );
+    writer.on_term( ss.str(), "1" );
   }
-
-  if ( (num_vars - ac - 1) >= (ac - 1)/2 )
-  {
-    return 8 * ( ac - 1u );
-  }
-  else
-  {
-    return 16 * ( ac -1u );
-  }
+  writer.on_end();
 }
 
-/*! \brief Compute the T-count of an ESOP form
+/*! \brief Writes ESOP form in PLA format to a file
  *
- * Compute the T-count of an ESOP form.
- *
- * \param cube An ESOP form
- * \param num_vars Total number of lines (or qubits)
- * \return T-count, i.e., the number of T-gates for realizing the ESOP form
+ * \param filename Name of the file to be written
+ * \param esop ESOP form
+ * \param num_vars Number of variables
  */
-inline uint64_t T_count( esop_t const& esop, uint32_t num_vars )
+inline void write_esop( std::string const& filename, esop::esop_t const& esop, unsigned num_vars )
 {
-  uint64_t total_cost = 0u;
-  for ( auto i = 0u; i < esop.size(); ++i )
-  {
-    total_cost += T_count( esop[i], num_vars );
-  }
-  return total_cost;
+  std::ofstream os( filename.c_str(), std::ofstream::out );
+  write_esop( os, esop, num_vars );
+  os.close();
 }
-  
-} // namespace easy::esop
+
+} /* namespace easy */
 
 // Local Variables:
 // c-basic-offset: 2
 // eval: (c-set-offset 'substatement-open 0)
 // eval: (c-set-offset 'innamespace 0)
 // End:
-

@@ -25,8 +25,8 @@
 
 #pragma once
 
-#include <easy/sat2/maxsat.hpp>
 #include <easy/sat2/cnf_from_xcnf.hpp>
+#include <easy/sat2/maxsat.hpp>
 #include <easy/utils/dynamic_bitset.hpp>
 
 #include <map>
@@ -49,7 +49,7 @@ inline std::vector<uint32_t> compute_flips( uint32_t n )
   for ( auto i = 1u; i <= total_flips; ++i )
   {
     gray_number = i ^ ( i >> 1 );
-    flip_vec[total_flips-i] = ffs( temp ^ gray_number ) - 1u;
+    flip_vec[total_flips - i] = ffs( temp ^ gray_number ) - 1u;
     temp = gray_number;
   }
 
@@ -60,7 +60,7 @@ inline std::vector<kitty::cube> compute_implicants( const kitty::cube& c, uint32
 {
   const auto flips = compute_flips( num_vars );
 
-  std::vector<kitty::cube> impls = { c };
+  std::vector<kitty::cube> impls = {c};
   auto copy = c;
   for ( const auto& flip : flips )
   {
@@ -92,8 +92,9 @@ struct helliwell_decision_variables
 {
 public:
   explicit helliwell_decision_variables( int& sid )
-    : _sid( sid )
-  {}
+      : _sid( sid )
+  {
+  }
 
   int lookup_g( const kitty::cube& c ) const
   {
@@ -150,7 +151,7 @@ protected:
 }; /* helliwell_decision_variables */
 
 template<typename TT>
-inline void derive_xor_clauses( std::vector<std::vector<int>>& xor_clauses, helliwell_decision_variables& g, TT const& bits, TT const& care )
+void derive_xor_clauses( std::vector<std::vector<int>>& xor_clauses, helliwell_decision_variables& g, TT const& bits, TT const& care )
 {
   assert( bits.num_vars() == care.num_vars() );
 
@@ -165,7 +166,7 @@ inline void derive_xor_clauses( std::vector<std::vector<int>>& xor_clauses, hell
       std::vector<int> clause;
       for ( const auto& impl : compute_implicants( minterm, bits.num_vars() ) )
       {
-        clause.push_back( g[ impl ] );
+        clause.push_back( g[impl] );
       }
 
       /* flip the first bit of the xor-clause if the minterm is positive */
@@ -186,7 +187,7 @@ inline esop_t esop_from_model( sat2::model const& m, helliwell_decision_variable
   esop_t esop;
   for ( const auto& v : g )
   {
-    if ( m[ v.first ] )
+    if ( m[v.first] )
     {
       esop.emplace_back( v.second );
     }
@@ -194,7 +195,7 @@ inline esop_t esop_from_model( sat2::model const& m, helliwell_decision_variable
   return esop;
 }
 
-inline esop_t esop_from_clause_selectors( std::vector<int> const& sels, helliwell_decision_variables const& g, std::unordered_map<int,int> soft_clause_map )
+inline esop_t esop_from_clause_selectors( std::vector<int> const& sels, helliwell_decision_variables const& g, std::unordered_map<int, int> soft_clause_map )
 {
   esop_t esop;
   for ( const auto& s : sels )
@@ -209,9 +210,11 @@ inline std::vector<std::vector<int>> translate_to_cnf( int& sid, std::vector<std
   return sat2::cnf_from_xcnf( sid, xcnf, num_vars ).get();
 }
 
-} /* detail */
+} // namespace detail
 
-struct helliwell_maxsat {};
+struct helliwell_maxsat
+{
+};
 
 struct helliwell_maxsat_statistics
 {
@@ -229,17 +232,16 @@ public:
 
 public:
   explicit esop_from_tt( helliwell_maxsat_statistics& stats, helliwell_maxsat_params& ps )
-    : _stats( stats )
-    , _ps( ps )
-    , _solver( _maxsat_stats, _maxsat_ps, _sid )
-  {}
+      : _stats( stats ), _ps( ps ), _solver( _maxsat_stats, _maxsat_ps, _sid )
+  {
+  }
 
   /*! \brief Synthesizes an ESOP form from an incompletely-specified Boolean function
    *
    * \param bits Truth table of function
    * \param care Truth table of care function
    */
-  esop_t synthesize( TT const& bits, TT const& care, std::function<int(kitty::cube)> const& cost_fn = []( kitty::cube const& cube ){ return 1; } )
+  esop_t synthesize( TT const& bits, TT const& care, std::function<int( kitty::cube )> const& cost_fn = []( kitty::cube const& cube ) { (void)cube; return 1; } )
   {
     assert( bits.num_vars() == care.num_vars() );
 
@@ -256,10 +258,10 @@ public:
     }
 
     /* add soft clauses and remember how they map onto g */
-    std::unordered_map<int,int> soft_clause_map;
+    std::unordered_map<int, int> soft_clause_map;
     for ( const auto& v : g )
     {
-      int cid = _solver.add_soft_clause( { -v.first }, cost_fn( v.second ) );
+      int cid = _solver.add_soft_clause( {-v.first}, cost_fn( v.second ) );
       soft_clause_map.insert( std::make_pair( cid, v.first ) );
     }
 
@@ -280,7 +282,7 @@ public:
    *
    * \param bits Truth table of function
    */
-  esop_t synthesize( TT const& bits, std::function<int(kitty::cube)> const& cost_fn = []( kitty::cube const& cube ){ return 1; }  )
+  esop_t synthesize( TT const& bits, std::function<int( kitty::cube )> const& cost_fn = []( kitty::cube const& cube ) { (void)cube; return 1; } )
   {
     auto const care = kitty::create<TT>( bits.num_vars() );
     return synthesize( bits, ~care, cost_fn );
@@ -297,21 +299,26 @@ protected:
   maxsat_solver_t _solver;
 }; /* esop_from_tt */
 
-struct helliwell_sat {};
+struct helliwell_sat
+{
+};
 
-struct helliwell_sat_statistics {};
+struct helliwell_sat_statistics
+{
+};
 
-struct helliwell_sat_params {};
+struct helliwell_sat_params
+{
+};
 
 template<typename TT, typename Solver>
 class esop_from_tt<TT, Solver, helliwell_sat>
 {
 public:
   explicit esop_from_tt( helliwell_sat_statistics& stats, helliwell_sat_params& ps )
-    : _stats( stats )
-    , _ps( ps )
-    , _solver( _sat_stats, _sat_ps )
-  {}
+      : _stats( stats ), _ps( ps ), _solver( _sat_stats, _sat_ps )
+  {
+  }
 
   /*! \brief Synthesizes an ESOP form from an incompletely-specified Boolean function
    *

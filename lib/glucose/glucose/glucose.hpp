@@ -1945,10 +1945,6 @@ const Lit lit_Error = { -1 };  // }
 //       does enough constant propagation to produce sensible code, and this appears to be somewhat
 //       fragile unfortunately.
 
-#define l_True  (Glucose::lbool((uint8_t)0)) // gcc does not do constant propagation if these are real constants.
-#define l_False (Glucose::lbool((uint8_t)1))
-#define l_Undef (Glucose::lbool((uint8_t)2))
-
 class lbool {
     uint8_t value;
 
@@ -1977,6 +1973,10 @@ public:
 };
 inline int   toInt  (lbool l) { return l.value; }
 inline lbool toLbool(int   v) { return lbool((uint8_t)v);  }
+
+static const Glucose::lbool l_True = (Glucose::lbool((uint8_t)0)); // gcc does not do constant propagation if these are real constants.
+static const Glucose::lbool l_False = (Glucose::lbool((uint8_t)1));
+static const Glucose::lbool l_Undef = (Glucose::lbool((uint8_t)2));
 
 //=================================================================================================
 // Clause -- a simple class for representing a clause:
@@ -4708,7 +4708,7 @@ inline void Solver::adaptSolver() {
     if(!adjusted) {
         // printf("c Nothing extreme in this problem, continue with glucose default strategies.\n");
     }
-    printf("c\n");
+    // printf("c\n");
     if(adjusted) { // Let's reinitialize the glucose restart strategy counters
         lbdQueue.fastclear();
         sumLBD = 0;

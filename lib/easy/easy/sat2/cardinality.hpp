@@ -50,7 +50,7 @@ struct totalizer_tree
   std::vector<int> vars;
   uint32_t num_inputs;
   std::shared_ptr<totalizer_tree> left;
-  std::shared_ptr<totalizer_tree> right; 
+  std::shared_ptr<totalizer_tree> right;
 }; /* totalizer_tree */
 
 namespace detail
@@ -58,29 +58,31 @@ namespace detail
 
 inline void create_totalizer_internal( std::vector<std::vector<int>>& dest, int& sid, std::vector<int> const& ov, uint32_t rhs, std::vector<int> const& av, std::vector<int> const& bv )
 {
+  (void)sid;
+
   /* i = 0 */
   uint32_t kmin = std::min( rhs, uint32_t( bv.size() ) );
-  for ( auto j = 0; j < kmin; ++j )
+  for ( auto j = 0u; j < kmin; ++j )
   {
     dest.emplace_back( std::vector<int>{ -bv[j], ov[j] } );
   }
 
   /* j = 0 */
   kmin = std::min( rhs, uint32_t( av.size() ) );
-  for ( auto i = 0; i < kmin; ++i )
+  for ( auto i = 0u; i < kmin; ++i )
   {
     dest.emplace_back( std::vector<int>{ -av[i], ov[i] } );
   }
-  
+
   /* i, j > 0 */
-  for ( auto i = 1; i <= kmin; ++i )
+  for ( auto i = 1u; i <= kmin; ++i )
   {
     auto const min_j = std::min( rhs-i, uint32_t( bv.size() ) );
-    for ( auto j = 1; j <= min_j; ++j )
+    for ( auto j = 1u; j <= min_j; ++j )
     {
       dest.emplace_back( std::vector<int>{ -av[i-1], -bv[j-1], ov[i+j-1] } );
     }
-  }  
+  }
 }
 
 inline void increase_totalizer_internal( std::vector<std::vector<int>>& dest, int& sid, std::vector<int>& ov, uint32_t rhs, std::vector<int>& av, std::vector<int>& bv )
@@ -107,11 +109,11 @@ inline void increase_totalizer_internal( std::vector<std::vector<int>>& dest, in
   }
 
   /* i, j > 0 */
-  for ( auto i = 1; i <= max_i; ++i )
+  for ( auto i = 1u; i <= max_i; ++i )
   {
     auto const max_j = std::min( rhs-i, uint32_t( bv.size() ) );
     auto const min_j = std::max( int( last ) - int( i ) + 1, 1 );
-    for ( auto j = min_j; j <= max_j; ++j )
+    for ( int j = min_j; j <= int(max_j); ++j )
     {
       dest.emplace_back( std::vector<int>{ -av[i-1], -bv[j-1], ov[i+j-1] } );
     }
@@ -125,7 +127,7 @@ inline std::shared_ptr<totalizer_tree> create_totalizer( std::vector<std::vector
   auto const n = lhs.size();
 
   std::deque<std::shared_ptr<totalizer_tree>> queue;
-  for ( auto i = 0; i < n; ++i )
+  for ( auto i = 0u; i < n; ++i )
   {
     auto t = std::make_shared<totalizer_tree>();
     t->vars.resize( 1 );
@@ -150,7 +152,7 @@ inline std::shared_ptr<totalizer_tree> create_totalizer( std::vector<std::vector
 
     uint32_t kmin = std::min( rhs+1, t->num_inputs );
     t->vars.resize( kmin );
-    for ( auto i = 0; i < kmin; ++i )
+    for ( auto i = 0u; i < kmin; ++i )
     {
       t->vars[i] = sid++;
     }
@@ -186,7 +188,7 @@ inline std::shared_ptr<totalizer_tree> merge_totalizer( std::vector<std::vector<
   t->right = tb;
   t->vars.resize( kmin );
 
-  for ( auto i = 0; i < kmin; ++i )
+  for ( auto i = 0u; i < kmin; ++i )
   {
     t->vars[i] = sid++;
   }

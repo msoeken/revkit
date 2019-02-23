@@ -347,17 +347,17 @@ public:
     }
 
     auto const result = _glucose->solveLimited( ass );
-    if ( result == l_Undef || int32_t(_glucose->conflicts) >= _ps.budget )
+    if ( result == Glucose::l_Undef || int32_t(_glucose->conflicts) >= _ps.budget )
     {
       return ( _state = state::dirty );
     }
-    else if ( result == l_True )
+    else if ( result == Glucose::l_True )
     {
       return ( _state = state::sat );
     }
     else
     {
-      assert( result == l_False );
+      assert( result == Glucose::l_False );
       return ( _state = state::unsat );
     }
   }
@@ -391,7 +391,7 @@ public:
     utils::dynamic_bitset<> m;
     for ( auto i = 0u; i < size; ++i )
     {
-      m.push_back( _glucose->model[i] == l_True );
+      m.push_back( _glucose->model[i] == Glucose::l_True );
     }
     return model( m );
   }

@@ -1,5 +1,5 @@
 /* easy: C++ ESOP library
- * Copyright (C) 2018  EPFL
+ * Copyright (C) 2017-2018  EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,66 +26,52 @@
 #pragma once
 
 #include <easy/esop/esop.hpp>
+#include <lorina/pla.hpp>
 
-namespace easy::esop
+namespace easy
 {
 
-/*! \brief Compute the T-count of a product term
+/*! \brief lorina reader callback for PLA files
  *
- * Compute the T-count of a product term.
+ * Reads a PLA file and stores the terms as esop_t.
  *
- * \param cube A product term
- * \param num_vars Total number of lines (or qubits)
- * \return T-count, i.e., the number of T-gates for realizing the product term
  */
-inline uint64_t T_count( kitty::cube const& cube, uint32_t num_vars )
+class esop_storage_reader : public lorina::pla_reader
 {
-  uint32_t const ac = cube.num_literals();
-
-  switch( ac )
+public:
+  esop_storage_reader( esop::esop_t& esop, unsigned& num_vars )
+      : _esop( esop ), _num_vars( num_vars )
   {
-  case 0u:
-  case 1u:
-    return 0u;
-  case 2u:
-    return 7u;
-  default:
-    break;
   }
 
-  if ( (num_vars - ac - 1) >= (ac - 1)/2 )
+  void on_number_of_inputs( std::size_t i ) const override
   {
-    return 8 * ( ac - 1u );
+    _num_vars = i;
   }
-  else
-  {
-    return 16 * ( ac -1u );
-  }
-}
 
-/*! \brief Compute the T-count of an ESOP form
- *
- * Compute the T-count of an ESOP form.
- *
- * \param cube An ESOP form
- * \param num_vars Total number of lines (or qubits)
- * \return T-count, i.e., the number of T-gates for realizing the ESOP form
- */
-inline uint64_t T_count( esop_t const& esop, uint32_t num_vars )
-{
-  uint64_t total_cost = 0u;
-  for ( auto i = 0u; i < esop.size(); ++i )
+  void on_term( const std::string& term, const std::string& out ) const override
   {
-    total_cost += T_count( esop[i], num_vars );
+    assert( out == "1" );
+    _esop.emplace_back( term );
   }
-  return total_cost;
-}
-  
-} // namespace easy::esop
+
+  bool on_keyword( const std::string& keyword, const std::string& value ) const override
+  {
+    if ( keyword == "type" && value == "esop" )
+    {
+      return true;
+    }
+    return false;
+  }
+
+  esop::esop_t& _esop;
+  unsigned& _num_vars;
+}; /* esop_storage_reader */
+
+} /* namespace easy */
 
 // Local Variables:
 // c-basic-offset: 2
 // eval: (c-set-offset 'substatement-open 0)
 // eval: (c-set-offset 'innamespace 0)
 // End:
-

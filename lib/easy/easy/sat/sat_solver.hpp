@@ -41,21 +41,21 @@ struct sat_solver
 
   struct result
   {
-    result( state_t state = l_Undef )
+    result( state_t state = Glucose::l_Undef )
         : state( state )
     {
     }
 
     result( const model_t& m )
-        : state( l_True ), model( m )
+        : state( Glucose::l_True ), model( m )
     {
     }
 
-    inline operator bool() const { return ( state == l_True ); }
+    inline operator bool() const { return ( state == Glucose::l_True ); }
 
-    inline bool is_sat() const { return ( state == l_True ); }
-    inline bool is_unsat() const { return ( state == l_False ); }
-    inline bool is_undef() const { return ( state == l_Undef ); }
+    inline bool is_sat() const { return ( state == Glucose::l_True ); }
+    inline bool is_unsat() const { return ( state == Glucose::l_False ); }
+    inline bool is_undef() const { return ( state == Glucose::l_Undef ); }
 
     state_t state;
     model_t model;
@@ -145,14 +145,14 @@ inline sat_solver::result sat_solver::solve( constraints& constraints, const ass
   else
   {
     const auto solver_result = _solver->solveLimited( assume );
-    if ( solver_result == l_Undef || int32_t(_solver->conflicts) >= _conflict_limit )
+    if ( solver_result == Glucose::l_Undef || int32_t(_solver->conflicts) >= _conflict_limit )
     {
-      return result( l_Undef );
+      return result( Glucose::l_Undef );
     }
     else
     {
-      assert( solver_result == l_True || solver_result == l_False );
-      sat = solver_result == l_True;
+      assert( solver_result == Glucose::l_True || solver_result == Glucose::l_False );
+      sat = solver_result == Glucose::l_True;
     }
   }
 
@@ -167,7 +167,7 @@ inline sat_solver::result sat_solver::solve( constraints& constraints, const ass
   }
   else
   {
-    return result( sat ? l_True : l_False );
+    return result( sat ? Glucose::l_True : Glucose::l_False );
   }
 }
 
