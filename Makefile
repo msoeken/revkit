@@ -14,3 +14,9 @@ docs: devbuild docs/*.rst docs/conf.py
 
 test: devbuild
 	venv/bin/python setup.py test
+
+clean:
+	test -d build && rm -Rf build
+	test -d dist && rm -Rf dist
+	test -d revkit.egg-info && rm -Rf revkit.egg-info
+	test -d venv && rm -Rf venv
