@@ -1,15 +1,16 @@
 language: python
 
 script:
+  - pip install virtualenv
   - make devbuild
 
 matrix:
   include:
   - os: linux
-    dist: trusty
+    dist: xenial
     sudo: required
     compiler: gcc
-    python: "3.6"
+    python: 3.7
     addons:
       apt:
         sources: 
