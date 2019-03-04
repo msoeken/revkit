@@ -1,0 +1,18 @@
+language: python
+
+script:
+  - make devbuild
+
+matrix:
+  include:
+  - os: linux
+    dist: trusty
+    sudo: required
+    compiler: gcc
+    addons:
+      apt:
+        sources: 
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-7
+    env: CC=g++-7
