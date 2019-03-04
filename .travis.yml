@@ -9,6 +9,7 @@ matrix:
     dist: trusty
     sudo: required
     compiler: gcc
+    python: "3.6"
     addons:
       apt:
         sources: 
