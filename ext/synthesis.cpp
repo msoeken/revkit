@@ -326,6 +326,7 @@ void synthesis( py::module m )
         {
         case lhrs_network_type::aig:
           return _lhrs_wrapper<mockturtle::aig_network>( filename, strategy, lut_synthesis_fn, num_pebbles );
+        default:
         case lhrs_network_type::xag:
           return _lhrs_wrapper<mockturtle::xag_network>( filename, strategy, lut_synthesis_fn, num_pebbles );
         case lhrs_network_type::mig:
