@@ -19,3 +19,31 @@ matrix:
           - gcc-7
           - g++-7
     env: CC=gcc-7
+  - os: linux
+    dist: xenial
+    sudo: required
+    compiler: gcc
+    python: 3.7
+    addons:
+      apt:
+        sources: 
+          - ubuntu-toolchain-r-test
+        packages:
+          - gcc-8
+          - g++-8
+    env: CC=gcc-8
+  - os: linux
+    dist: xenial
+    sudo: required
+    compiler: clang
+    python: 3.7
+    addons:
+      apt:
+        sources: 
+          - ubuntu-toolchain-r-test
+          - llvm-toolchain-xenial-6.0
+        packages:
+          - clang-6.0
+          - g++-7
+          - gcc-7
+    env: CC=clang-6.0
