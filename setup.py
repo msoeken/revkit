@@ -49,6 +49,8 @@ ext_modules = [
 ]
 
 class BuildExt(build_ext):
+  from halo import Halo
+  @Halo(text='Compiling C++ sources... (be patient, this may take a few minutes)', spinner='dots')
   def build_extensions(self):
     ct = self.compiler.compiler_type
     opts = []

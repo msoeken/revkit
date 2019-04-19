@@ -2,3 +2,4 @@ pybind11
 setuptools
 sphinx
 sphinx_rtd_theme
+halo
