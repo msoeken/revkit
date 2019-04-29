@@ -47,3 +47,8 @@ matrix:
           - g++-7
           - gcc-7
     env: CC=clang-6.0
+  - os: osx
+    osx_image: xcode10.2
+    python: 3.7
+    before_install:
+      - brew install pyenv-virtualenv
