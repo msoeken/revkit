@@ -1,11 +1,10 @@
-language: python
-
 script:
   - make devbuild
 
 matrix:
   include:
   - os: linux
+    language: python
     dist: xenial
     sudo: required
     compiler: gcc
@@ -21,6 +20,7 @@ matrix:
           - g++-7
     env: CC=gcc-7
   - os: linux
+    language: python
     dist: xenial
     sudo: required
     compiler: gcc
@@ -36,6 +36,7 @@ matrix:
           - g++-8
     env: CC=gcc-8
   - os: linux
+    language: python
     dist: xenial
     sudo: required
     compiler: clang
