@@ -1,7 +1,6 @@
 language: python
 
 script:
-  - pip install virtualenv
   - make devbuild
 
 matrix:
@@ -11,6 +10,8 @@ matrix:
     sudo: required
     compiler: gcc
     python: 3.7
+    before_install:
+      - pip install virtualenv
     addons:
       apt:
         sources: 
@@ -24,6 +25,8 @@ matrix:
     sudo: required
     compiler: gcc
     python: 3.7
+    before_install:
+      - pip install virtualenv
     addons:
       apt:
         sources: 
@@ -37,6 +40,8 @@ matrix:
     sudo: required
     compiler: clang
     python: 3.7
+    before_install:
+      - pip install virtualenv
     addons:
       apt:
         sources: 
@@ -49,6 +54,6 @@ matrix:
     env: CC=clang-6.0
   - os: osx
     osx_image: xcode10.2
-    python: 3.7
     before_install:
+      - brew install python
       - brew install pyenv-virtualenv

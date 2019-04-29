@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/msoeken/revkit.svg?branch=master)](https://travis-ci.org/msoeken/revkit)
+
 # RevKit 3.1
 
 RevKit 3.1 is a Python quantum compilation library.  RevKit is based on the C++
