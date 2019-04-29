@@ -56,5 +56,4 @@ matrix:
   - os: osx
     osx_image: xcode10.2
     before_install:
-      - brew install python
-      - brew install pyenv-virtualenv
+      - python3 -m pip install virtualenv
